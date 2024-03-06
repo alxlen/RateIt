@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import (MaxValueValidator,
+                                    MinValueValidator, RegexValidator)
 from django.db import models
 
 TITLE_CUT = 25
@@ -10,8 +11,13 @@ class Category(models.Model):
     """Класс категория."""
 
     name = models.CharField('Название категории', max_length=256)
-    slug = models.SlugField('Идентификатор', max_length=50, unique=True,
-                            validators=[])
+    slug = models.SlugField(
+        'Идентификатор',
+        max_length=50,
+        unique=True,
+        validators=[RegexValidator(regex='^[-a-zA-Z0-9_]+$',
+                                   message='Недопустимый символ в названии.'),]
+    )
 
     class Meta:
         verbose_name = 'категория'
@@ -26,8 +32,13 @@ class Genre(models.Model):
     """Класс жанр."""
 
     name = models.CharField('Название жанра', max_length=256)
-    slug = models.SlugField('Идентификатор', max_length=50, unique=True,
-                            validators=[])
+    slug = models.SlugField(
+        'Идентификатор',
+        max_length=50,
+        unique=True,
+        validators=[RegexValidator(regex='^[-a-zA-Z0-9_]+$',
+                                   message='Недопустимый символ в названии.'),]
+    )
 
     class Meta:
         verbose_name = 'жанр'
