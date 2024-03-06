@@ -1,7 +1,9 @@
 from datetime import datetime
+
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.tokens import default_token_generator
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import (MaxValueValidator,
+                                    MinValueValidator, RegexValidator)
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -98,8 +100,13 @@ class Category(models.Model):
     """Класс категория."""
 
     name = models.CharField('Название категории', max_length=256)
-    slug = models.SlugField('Идентификатор', max_length=50, unique=True,
-                            validators=[])
+    slug = models.SlugField(
+        'Идентификатор',
+        max_length=50,
+        unique=True,
+        validators=[RegexValidator(regex='^[-a-zA-Z0-9_]+$',
+                                   message='Недопустимый символ в названии.'),]
+    )
 
     class Meta:
         verbose_name = 'категория'
@@ -114,8 +121,13 @@ class Genre(models.Model):
     """Класс жанр."""
 
     name = models.CharField('Название жанра', max_length=256)
-    slug = models.SlugField('Идентификатор', max_length=50, unique=True,
-                            validators=[])
+    slug = models.SlugField(
+        'Идентификатор',
+        max_length=50,
+        unique=True,
+        validators=[RegexValidator(regex='^[-a-zA-Z0-9_]+$',
+                                   message='Недопустимый символ в названии.'),]
+    )
 
     class Meta:
         verbose_name = 'жанр'
