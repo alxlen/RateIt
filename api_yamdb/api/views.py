@@ -1,9 +1,14 @@
 from rest_framework import filters, viewsets
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from django.shortcuts import get_object_or_404
 
 from api.permissions import IsAdminUserOrReadOnly
 from api.serializers import (CategorySerializer, GenreSerializer,
                              TitleSerializer)
-from reviews.models import Category, Genre, Title
+from reviews.models import Category, Genre, Title, Comment, Review
+
+from api_yamdb.api.permissions import AdminModeratorAuthorPermission
+from api_yamdb.api.serializers import ReviewSerializer, CommentSerializer
 
 
 class CategoryViewSet():
@@ -25,3 +30,48 @@ class GenreViewSet():
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleSerializer
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели ревью."""
+
+    serializer_class = ReviewSerializer
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        AdminModeratorAuthorPermission,
+    )
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        serializer.save(author=self.request.user, title=title)
+
+    def get_queryset(self):
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        return title.reviews.all()
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели коммента."""
+
+    serializer_class = CommentSerializer
+    permission_classes = (
+        IsAuthenticatedOrReadOnly,
+        AdminModeratorAuthorPermission,
+    )
+
+    def perform_create(self, serializer):
+        """Создание нового коммента."""
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title)
+        serializer.save(author=self.request.user, review=review)
+
+    def get_queryset(self):
+        """Получение кверисета."""
+        title_id = self.kwargs.get('title_id')
+        title = get_object_or_404(Title, id=title_id)
+        review_id = self.kwargs.get('review_id')
+        review = get_object_or_404(Review, id=review_id, title=title)
+        return Comment.objects.filter(review=review)
