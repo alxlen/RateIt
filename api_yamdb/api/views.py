@@ -1,14 +1,14 @@
+from django.shortcuts import get_object_or_404
+from django.db.models import Avg
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from django.shortcuts import get_object_or_404
 
-from api.permissions import IsAdminUserOrReadOnly
-from api.serializers import (CategorySerializer, GenreSerializer,
-                             TitleSerializer)
-from reviews.models import Category, Genre, Title, Comment, Review
-
-from api_yamdb.api.permissions import AdminModeratorAuthorPermission
-from api_yamdb.api.serializers import ReviewSerializer, CommentSerializer
+from api.filters import TitleFilter
+from api.permissions import IsAdminUserOrReadOnly, AdminModeratorAuthorPermission
+from api.serializers import (CategorySerializer, CommentSerializer, GenreSerializer, 
+                             ReviewSerializer, TitleSerializer)
+from reviews.models import Category, Comment, Genre, Review, Title
 
 
 class CategoryViewSet():
@@ -28,8 +28,11 @@ class GenreViewSet():
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleSerializer
+    permission_classes = ()
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = TitleFilter
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -75,3 +78,4 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
         return Comment.objects.filter(review=review)
+
