@@ -1,27 +1,19 @@
-from rest_framework import filters, viewsets
+from django.contrib import admin
 
-from api.permissions import IsAdminUserOrReadOnly
-from api.serializers import (CategorySerializer, GenreSerializer,
-                             TitleSerializer)
-from reviews.models import Category, Genre, Title
+from reviews.models import User
 
 
-class CategoryViewSet():
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-
-
-class GenreViewSet():
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-
-
-class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = (
+        'username',
+        'email',
+        'role',
+        'bio',
+        'first_name',
+        'last_name',
+        'confirmation_code',
+    )
+    search_fields = ('username', 'role',)
+    list_filter = ('username',)
+    empty_value_display = 'пусто'
