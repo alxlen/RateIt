@@ -1,38 +1,45 @@
-from django.shortcuts import get_object_or_404
 from django.db.models import Avg
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
+from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from api.filters import TitleFilter
-from api.permissions import IsAdminUserOrReadOnly, AdminModeratorAuthorPermission
-from api.serializers import (CategorySerializer, CommentSerializer, GenreSerializer, 
-                             ReviewSerializer, TitleSerializer)
+from api.mixins import CreateListDestroyViewSet
+from api.permissions import (AdminModeratorAuthorPermission,
+                             IsAdminUserOrReadOnly)
+from api.serializers import (CategorySerializer, CommentSerializer,
+                             GenreSerializer, GetTitleSerializer,
+                             PostTitleSerializer, ReviewSerializer)
 from reviews.models import Category, Comment, Genre, Review, Title
 
 
-class CategoryViewSet():
+class CategoryViewSet(CreateListDestroyViewSet):
+    """Вьюсет для модели категории."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
-class GenreViewSet():
+class GenreViewSet(CreateListDestroyViewSet):
+    """Вьюсет для модели жанра."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminUserOrReadOnly,)
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет для модели произведения."""
+
     queryset = Title.objects.annotate(rating=Avg('reviews__score'))
-    serializer_class = TitleSerializer
-    permission_classes = ()
+    permission_classes = (IsAdminUserOrReadOnly)
     filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH',):
+            return PostTitleSerializer
+        return GetTitleSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -78,4 +85,3 @@ class CommentViewSet(viewsets.ModelViewSet):
         review_id = self.kwargs.get('review_id')
         review = get_object_or_404(Review, id=review_id, title=title)
         return Comment.objects.filter(review=review)
-
