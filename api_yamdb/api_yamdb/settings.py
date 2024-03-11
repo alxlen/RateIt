@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+
 from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,11 +23,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'rest_framework_simplejwt',
     'django_filters',
-    'api',
+    'rest_framework',
     'reviews',
+    'api',
 ]
 
 MIDDLEWARE = [
@@ -41,7 +42,8 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'api_yamdb.urls'
 
-TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+TEMPLATES_DIR = BASE_DIR / 'templates'
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
