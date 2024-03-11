@@ -30,8 +30,7 @@ class GetTokenSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'username',
-            'confirmation_code'
-        )
+            'confirmation_code')
 
 
 class SignUpSerializer(serializers.ModelSerializer):
