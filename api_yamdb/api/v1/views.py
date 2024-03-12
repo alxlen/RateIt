@@ -1,4 +1,5 @@
-from django.core.mail import EmailMessage
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import EmailMessage, send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -12,11 +13,11 @@ from rest_framework.views import APIView
 
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.filters import TitleFilter
+from api.v1.filters import TitleFilter
 from api.mixins import CreateListDestroyViewSet
-from api.permissions import (AdminModeratorAuthorPermission,
+from api.v1.permissions import (AdminModeratorAuthorPermission,
                              AdminOnly, IsAdminUserOrReadOnly)
-from api.serializers import (CategorySerializer, CommentSerializer,
+from api.v1.serializers import (CategorySerializer, CommentSerializer,
                              GetTokenSerializer, GenreSerializer,
                              GetTitleSerializer, NotAdminSerializer,
                              PostTitleSerializer, ReviewSerializer,
@@ -96,30 +97,32 @@ class APISignup(APIView):
     """
     permission_classes = (permissions.AllowAny,)
 
-    @staticmethod
-    def send_email(data):
-        email = EmailMessage(
-            subject=data['email_subject'],
-            body=data['email_body'],
-            to=[data['to_email']]
-        )
-        email.send()
-
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        user = serializer.save()
-        email_body = (
-            f'Доброе время суток, {user.username}.'
-            f'\nКод подтверждения для доступа к API: {user.confirmation_code}'
-        )
-        data = {
-            'email_body': email_body,
-            'to_email': user.email,
-            'email_subject': 'Код подтверждения для доступа к API!'
-        }
-        self.send_email(data)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        if serializer.is_valid():
+            username = serializer.validated_data.get("username")
+            email = serializer.validated_data.get("email")
+            user, _ = User.objects.get_or_create(
+                username=username,
+                email=email
+            )
+            confirmation_code = default_token_generator.make_token(user)
+            EMAIL_MESSAGE = (
+                f'Привет, {user.username}!'
+                f'Твой код подтверждения: {confirmation_code}'
+            )
+            send_mail(
+                subject='Confirmation code for YaMDb',
+                message=EMAIL_MESSAGE,
+                from_email=None,
+                recipient_list=[user.email],
+                fail_silently=False,
+            )
+            return Response(
+                serializer.validated_data,
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
