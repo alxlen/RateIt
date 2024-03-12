@@ -23,6 +23,8 @@ TITLE_CUT = 25
 
 
 class User(AbstractUser):
+    """Класс пользователя."""
+
     username = models.CharField(
         validators=(validate_username,),
         max_length=150,
@@ -190,7 +192,7 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
-    """Класс для отзыва+рейтинга."""
+    """Класс отзыва и рейтинга."""
 
     text = models.TextField(verbose_name='текст отзыва')
     author = models.ForeignKey(
@@ -236,11 +238,11 @@ class Review(models.Model):
 
     def __str__(self):
         """Возвращает текст отзыва."""
-        return self.text[:30]
+        return self.text[:TITLE_CUT]
 
 
 class Comment(models.Model):
-    """Класс добавления комментария."""
+    """Класс комментария."""
 
     text = models.TextField(verbose_name='текст комментария')
     author = models.ForeignKey(
@@ -267,4 +269,4 @@ class Comment(models.Model):
 
     def __str__(self):
         """Возвращает текст комментария."""
-        return self.text[:30]
+        return self.text[:TITLE_CUT]
