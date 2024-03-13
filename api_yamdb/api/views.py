@@ -1,3 +1,4 @@
+from django.core.mail import EmailMessage
 from django.db.models import Avg
 from django.core.mail import send_mail
 from django.contrib.auth.tokens import default_token_generator
