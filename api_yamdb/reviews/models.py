@@ -107,7 +107,7 @@ class Category(models.Model):
         max_length=50,
         unique=True,
         validators=[RegexValidator(regex='^[-a-zA-Z0-9_]+$',
-                                   message='Недопустимый символ в названии.'), ]
+                                   message='Недопустимый символ в названии.'),]
     )
 
     class Meta:
@@ -128,7 +128,7 @@ class Genre(models.Model):
         max_length=50,
         unique=True,
         validators=[RegexValidator(regex='^[-a-zA-Z0-9_]+$',
-                                   message='Недопустимый символ в названии.'), ]
+                                   message='Недопустимый символ в названии.'),]
     )
 
     class Meta:

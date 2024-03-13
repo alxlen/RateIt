@@ -2,18 +2,9 @@ import csv
 
 from django.core.management import BaseCommand
 
-from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
-                            Title, User)
+from reviews.models import (Category, Comment, Genre, GenreTitle,
+                            Review, Title, User)
 
-# CSV_FILES = [
-#     ['category.csv', Category],
-#     ['comments.csv', Comment],
-#     ['genre_title.csv', GenreTitle],
-#     ['genre.csv', Genre],
-#     ['review.csv', Review],
-#     ['titles.csv', Title],
-#     ['users.csv', User],
-# ]
 
 DATA_EXISTS_ERROR = """
 ВНИМАНИЕ! База данных не пустая.
@@ -47,7 +38,7 @@ def import_genre():
         with open('./static/data/genre.csv') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                Category.objects.create(
+                Genre.objects.create(
                     id=row['id'],
                     name=row['name'],
                     slug=row['slug'],
@@ -66,8 +57,41 @@ def import_titles():
                     id=row['id'],
                     name=row['name'],
                     year=row['year'],
-                    description=row['description'],
                     category_id=['category'],
+                )
+
+
+def import_genre_title():
+    if GenreTitle.objects.exists():
+        print(DATA_EXISTS_ERROR)
+        return
+    else:
+        with open('./static/data/genre_title.csv') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                GenreTitle.objects.create(
+                    id=row['id'],
+                    genre_id=row['genre_id'],
+                    title_id=['title_id'],
+                )
+
+
+def import_users():
+    if User.objects.exists():
+        print(DATA_EXISTS_ERROR)
+        return
+    else:
+        with open('./static/data/users.csv') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                User.objects.create(
+                    id=row['id'],
+                    username=row['username'],
+                    email=row['email'],
+                    role=row['role'],
+                    bio=['bio'],
+                    first_name=['first_name'],
+                    last_name=['last_name']
                 )
 
 
@@ -106,60 +130,15 @@ def import_comments():
                 )
 
 
-def import_genre_title():
-    if GenreTitle.objects.exists():
-        print(DATA_EXISTS_ERROR)
-        return
-    else:
-        with open('./static/data/genre_title.csv') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                GenreTitle.objects.create(
-                    id=row['id'],
-                    genre_id=row['genre_id'],
-                    title_id=['title_id'],
-                )
-
-
-def import_users():
-    if User.objects.exists():
-        print(DATA_EXISTS_ERROR)
-        return
-    else:
-        with open('./static/data/users.csv') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                User.objects.create(
-                    id=row['id'],
-                    username=row['username'],
-                    email=row['email'],
-                    role=row['role'],
-                    bio=['bio'],
-                    first_name=['first_name'],
-                    last_name=['last_name']
-                )
-
-
 class Command(BaseCommand):
     help = "Загружает данные из файлов .csv"
 
     def handle(self, *args, **options):
-        # for file, model in CSV_FILES:
-        #     if model.objects.exists():
-        #         print(DATA_EXISTS_ERROR)
-        #         return
-        #     else:
         import_category()
         import_genre()
         import_titles()
-        import_reviews()
-        import_comments()
         import_genre_title()
         import_users()
+        import_reviews()
+        import_comments()
         self.stdout.write(self.style.SUCCESS('Данные импортированы.'))
-
-
-                # with open('static/data/' + file, 'r', encoding='utf-8') as f:
-                #     reader = csv.DictReader(f)
-                #     for dict_row in reader:
-                #         model.objects.get_or_create(**dict_row)
