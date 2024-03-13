@@ -2,9 +2,8 @@ import csv
 
 from django.core.management import BaseCommand
 
-from reviews.models import (Category, Comment, Genre, GenreTitle,
-                            Review, Title, User)
-
+from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
+                            Title, User)
 
 DATA_EXISTS_ERROR = """
 ВНИМАНИЕ! База данных не пустая.
