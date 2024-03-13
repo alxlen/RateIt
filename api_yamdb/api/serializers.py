@@ -1,43 +1,58 @@
 from rest_framework import serializers
-
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.db import IntegrityError
+from django.shortcuts import get_object_or_404
 from reviews.models import Category, Comment, Genre, Review, Title, User
+from reviews.validators import validate_username
 
 
-class UsersSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор пользователя."""
+
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name',
-            'last_name', 'bio', 'role')
+            'username', 'first_name', 'last_name', 'email',
+            'role', 'bio'
+        )
 
 
-class NotAdminSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name',
-            'last_name', 'bio', 'role')
-        read_only_fields = ('role',)
+class UserRegistrationSerializer(serializers.Serializer):
+    """Сериализатор регистрации пользователя."""
 
-
-class GetTokenSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=254, required=True,)
     username = serializers.CharField(
-        required=True)
-    confirmation_code = serializers.CharField(
-        required=True)
+        max_length=150, required=True,
+        validators=[UnicodeUsernameValidator(), validate_username]
+    )
 
-    class Meta:
-        model = User
-        fields = (
-            'username',
-            'confirmation_code')
+    def create(self, validated_data):
+        try:
+            user, created = User.objects.get_or_create(**validated_data)
+            return user
+        except IntegrityError:
+            raise serializers.ValidationError(
+                "Неуникальный username или email."
+            )
 
 
-class SignUpSerializer(serializers.ModelSerializer):
+class TokenSerializer(serializers.Serializer):
+    """Сериализатор токена."""
 
-    class Meta:
-        model = User
-        fields = ('email', 'username')
+    username = serializers.CharField(max_length=150)
+    confirmation_code = serializers.CharField()
+
+    def validate(self, data):
+        username = data.get('username')
+        confirmation_code = data.get('confirmation_code')
+        user = get_object_or_404(User, username=username)
+
+        if not default_token_generator.check_token(user, confirmation_code):
+            raise serializers.ValidationError(
+                'Неверный код подтверждения.'
+            )
+        return data
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -46,6 +61,7 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -54,6 +70,7 @@ class GenreSerializer(serializers.ModelSerializer):
     class Meta:
         model = Genre
         fields = ('name', 'slug')
+        lookup_field = 'slug'
 
 
 class GetTitleSerializer(serializers.ModelSerializer):
