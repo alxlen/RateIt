@@ -56,7 +56,7 @@ def import_titles():
                     id=row['id'],
                     name=row['name'],
                     year=row['year'],
-                    category_id=['category'],
+                    category_id=row['category'],
                 )
 
 
@@ -71,7 +71,7 @@ def import_genre_title():
                 GenreTitle.objects.create(
                     id=row['id'],
                     genre_id=row['genre_id'],
-                    title_id=['title_id'],
+                    title_id=row['title_id'],
                 )
 
 
@@ -88,9 +88,9 @@ def import_users():
                     username=row['username'],
                     email=row['email'],
                     role=row['role'],
-                    bio=['bio'],
-                    first_name=['first_name'],
-                    last_name=['last_name']
+                    bio=row['bio'],
+                    first_name=row['first_name'],
+                    last_name=row['last_name']
                 )
 
 
@@ -104,11 +104,11 @@ def import_reviews():
             for row in reader:
                 Review.objects.create(
                     id=row['id'],
+                    title_id=row['title_id'],
                     text=row['text'],
+                    author_id=row['author'],
                     score=row['score'],
                     pub_date=row['pub_date'],
-                    author_id=['author'],
-                    title_id=['title_id'],
                 )
 
 
@@ -124,8 +124,8 @@ def import_comments():
                     id=row['id'],
                     text=row['text'],
                     pub_date=row['pub_date'],
-                    author_id=['author'],
-                    review_id=['review_id'],
+                    author_id=row['author'],
+                    review_id=row['review_id'],
                 )
 
 
@@ -140,4 +140,36 @@ class Command(BaseCommand):
         import_users()
         import_reviews()
         import_comments()
-        self.stdout.write(self.style.SUCCESS('Данные импортированы.'))
+        self.stdout.write(self.style.SUCCESS('Операция завершена.'))
+
+
+# CSV_FILES_MODELS_FIELDS = [
+#     ['users.csv', User, (None)],
+#     ['category.csv', Category, (None)],
+#     ['genre.csv', Genre, (None)],
+#     ['titles.csv', Title, ("id", "name", "year", "category_id")],
+#    # ['genre_title.csv', GenreTitle, (None)],
+#    # ['review.csv', Review],
+#    # ['comments.csv', Comment],
+# ]
+
+
+# class Command(BaseCommand):
+#     help = 'Загружает данные из файлов .csv'
+
+#     def handle(self, *args, **options):
+
+#         self.stdout.write(self.style.NOTICE('Очистка базы данных'))
+
+#         for _, model, _ in reversed(CSV_FILES_MODELS_FIELDS):
+#             model.objects.all().delete()
+
+#         self.stdout.write(self.style.NOTICE('Загрузка данных'))
+
+#         for file, model, field_names in CSV_FILES_MODELS_FIELDS:
+#             with open('static/data/' + file, 'r', encoding='utf-8') as f:
+#                 reader = csv.DictReader(f, fieldnames=field_names)
+#                 for row in reader:
+#                     model.objects.get_or_create(**row)
+
+#         self.stdout.write(self.style.SUCCESS('Импорт завершен'))
