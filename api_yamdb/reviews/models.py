@@ -29,7 +29,6 @@ class User(AbstractUser):
         validators=(validate_username,),
         max_length=150,
         unique=True,
-        blank=False,
         null=False,
     )
     email = models.CharField(
@@ -49,16 +48,7 @@ class User(AbstractUser):
         'биография',
         blank=True,
     )
-    first_name = models.CharField(
-        'имя',
-        max_length=150,
-        blank=True,
-    )
-    last_name = models.CharField(
-        'фамилия',
-        max_length=150,
-        blank=True,
-    )
+
     confirmation_code = models.CharField(
         'код подтверждения',
         max_length=255,
@@ -66,10 +56,6 @@ class User(AbstractUser):
         blank=False,
         default='XXXX'
     )
-
-    @property
-    def is_user(self):
-        return self.role == USER
 
     @property
     def is_admin(self):
@@ -80,7 +66,7 @@ class User(AbstractUser):
         return self.role == MODERATOR
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
