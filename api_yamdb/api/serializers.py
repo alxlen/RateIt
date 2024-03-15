@@ -92,11 +92,17 @@ class PostTitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,
+                                         allow_empty=True, required=True,
                                          queryset=Genre.objects.all())
 
     class Meta:
         model = Title
         fields = '__all__'
+
+    def to_representation(self, title):
+        "Метод для вывода результата запроса."
+        serializer = GetTitleSerializer(title)
+        return serializer.data
 
 
 class ReviewSerializer(serializers.ModelSerializer):

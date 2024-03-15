@@ -2,6 +2,8 @@ import csv
 
 from django.core.management import BaseCommand
 
+from itertools import islice
+
 from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
                             Title, User)
 
@@ -14,9 +16,20 @@ DATA_EXISTS_ERROR = """
 """
 
 
+CSV_FILES_MODELS = [
+    ['users.csv', User],
+    ['category.csv', Category],
+    ['genre.csv', Genre],
+    ['titles.csv', Title],
+    ['genre_title.csv', GenreTitle],
+    ['review.csv', Review],
+    ['comments.csv', Comment],
+]
+
+
 def import_category():
     if Category.objects.exists():
-        print(DATA_EXISTS_ERROR)
+        self.stdout.write(self.style.NOTICE(DATA_EXISTS_ERROR)
         return
     else:
         with open('./static/data/category.csv') as csvfile:
@@ -148,10 +161,20 @@ class Command(BaseCommand):
 #     ['category.csv', Category, (None)],
 #     ['genre.csv', Genre, (None)],
 #     ['titles.csv', Title, ("id", "name", "year", "category_id")],
-#    # ['genre_title.csv', GenreTitle, (None)],
-#    # ['review.csv', Review],
-#    # ['comments.csv', Comment],
+#     ['genre_title.csv', GenreTitle, (None)],
+#     ['review.csv', Review],
+#     ['comments.csv', Comment],
 # ]
+
+
+# PUL = ('category_id', 'author_id')
+
+
+# def ww(key, value):
+#     return int(value) if key in PUL else value
+
+# def qq(key):
+#     return 
 
 
 # class Command(BaseCommand):
@@ -169,7 +192,14 @@ class Command(BaseCommand):
 #         for file, model, field_names in CSV_FILES_MODELS_FIELDS:
 #             with open('static/data/' + file, 'r', encoding='utf-8') as f:
 #                 reader = csv.DictReader(f, fieldnames=field_names)
-#                 for row in reader:
-#                     model.objects.get_or_create(**row)
+#                 for row in islice(reader, 0, None):
+#                     new_dict = {
+#                         key: ww(key, value) for key, value in row.items()
+#                     }
+#                     model.objects.get_or_create(**new_dict)
 
 #         self.stdout.write(self.style.SUCCESS('Импорт завершен'))
+
+
+
+
