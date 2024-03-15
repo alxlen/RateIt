@@ -4,6 +4,7 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, views, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import IsAuthenticated
@@ -90,13 +91,16 @@ class UserListViewSet(viewsets.ModelViewSet):
 
     @get_current_user_info.mapping.patch
     def update_current_user_info(self, request):
+        if 'role' in request.data:
+            raise ValidationError({"role": ["Changing user's role is"
+                                            "not allowed."]}, code='invalid')
+
         serializer = self.get_serializer(
             request.user,
             data=request.data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data['role'] = request.user.role
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
 
