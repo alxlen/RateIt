@@ -8,6 +8,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from .constans import (MAX_LENGTH_CONFIRMATION_CODE, MAX_LENGTH_EMAIL,
+                       MAX_LENGTH_ROLE, MAX_LENGTH_USERNAME,)
 from .validators import validate_username
 
 USER = 'user'
@@ -27,19 +29,19 @@ class User(AbstractUser):
 
     username = models.CharField(
         validators=(validate_username,),
-        max_length=150,
+        max_length=MAX_LENGTH_USERNAME,
         unique=True,
         null=False,
     )
     email = models.CharField(
-        max_length=254,
+        max_length=MAX_LENGTH_EMAIL,
         unique=True,
         blank=False,
         null=False,
     )
     role = models.CharField(
         'роль',
-        max_length=20,
+        max_length=MAX_LENGTH_ROLE,
         choices=ROLE_CHOICES,
         default=USER,
         blank=True,
@@ -51,19 +53,11 @@ class User(AbstractUser):
 
     confirmation_code = models.CharField(
         'код подтверждения',
-        max_length=255,
+        max_length=MAX_LENGTH_CONFIRMATION_CODE,
         null=True,
         blank=False,
         default='XXXX'
     )
-
-    @property
-    def is_admin(self):
-        return self.role == ADMIN
-
-    @property
-    def is_moderator(self):
-        return self.role == MODERATOR
 
     class Meta:
         ordering = ('username',)
@@ -72,6 +66,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    @property
+    def is_admin(self):
+        return self.role == ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
 
 
 @receiver(post_save, sender=User)

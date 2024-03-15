@@ -4,10 +4,9 @@ from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, views, viewsets
-from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -20,13 +19,14 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              PostTitleSerializer, ReviewSerializer,
                              TokenSerializer, UserRegistrationSerializer,
                              UserSerializer)
+from api_yamdb.settings import EMAIL_SENDER
 from reviews.models import Category, Genre, Review, Title, User
 
 
 class UserRegisterAPIView(views.APIView):
     """Регистрация пользователя."""
 
-    permission_classes = [IsAdmin]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -48,7 +48,7 @@ class UserRegisterAPIView(views.APIView):
         send_mail(
             subject='Confirmation Code',
             message=f'Your confirmation code: {confirmation_code}',
-            from_email='noreply@example.com',
+            from_email=EMAIL_SENDER,
             recipient_list=[email],
             fail_silently=False,
         )
@@ -91,17 +91,13 @@ class UserListViewSet(viewsets.ModelViewSet):
 
     @get_current_user_info.mapping.patch
     def update_current_user_info(self, request):
-        if 'role' in request.data:
-            raise ValidationError({"role": ["Changing user's role is"
-                                            "not allowed."]}, code='invalid')
-
         serializer = self.get_serializer(
             request.user,
             data=request.data,
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
