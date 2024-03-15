@@ -57,14 +57,6 @@ class User(AbstractUser):
         default='XXXX'
     )
 
-    @property
-    def is_admin(self):
-        return self.role == ADMIN
-
-    @property
-    def is_moderator(self):
-        return self.role == MODERATOR
-
     class Meta:
         ordering = ('username',)
         verbose_name = 'Пользователь'
@@ -72,6 +64,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+    @property
+    def is_admin(self):
+        return self.role == ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.role == MODERATOR
 
 
 @receiver(post_save, sender=User)
