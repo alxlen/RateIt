@@ -18,9 +18,13 @@ router_01.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)'
 router_01.register('users', UserListViewSet, basename='user')
 
 
+auth_urls = [
+    path('signup/', UserRegisterAPIView.as_view(), name='signup'),
+    path('token/', TokenValidationAPIView.as_view(), name='get_token'),
+]
+
 paths = [
-    path('auth/signup/', UserRegisterAPIView.as_view(), name='signup'),
-    path('auth/token/', TokenValidationAPIView.as_view(), name='get_token'),
+    path('auth/', include(auth_urls)),
     path('', include(router_01.urls)),
 ]
 

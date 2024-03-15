@@ -6,7 +6,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -19,13 +19,14 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              PostTitleSerializer, ReviewSerializer,
                              TokenSerializer, UserRegistrationSerializer,
                              UserSerializer)
+from api_yamdb.settings import EMAIL_SENDER
 from reviews.models import Category, Genre, Review, Title, User
 
 
 class UserRegisterAPIView(views.APIView):
     """Регистрация пользователя."""
 
-    permission_classes = [IsAdmin]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         serializer = UserRegistrationSerializer(data=request.data)
@@ -47,7 +48,7 @@ class UserRegisterAPIView(views.APIView):
         send_mail(
             subject='Confirmation Code',
             message=f'Your confirmation code: {confirmation_code}',
-            from_email='noreply@example.com',
+            from_email=EMAIL_SENDER,
             recipient_list=[email],
             fail_silently=False,
         )
@@ -96,8 +97,7 @@ class UserListViewSet(viewsets.ModelViewSet):
             partial=True
         )
         serializer.is_valid(raise_exception=True)
-        serializer.validated_data['role'] = request.user.role
-        serializer.save()
+        serializer.save(role=request.user.role)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -121,8 +121,9 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('rating')
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
     filterset_class = TitleFilter
+    ordering_fields = ['name', 'year', 'genre', 'category']
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):

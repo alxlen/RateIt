@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
+from reviews.constants import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
 from reviews.models import Category, Comment, Genre, Review, Title, User
 from reviews.validators import validate_username
 
@@ -22,9 +23,9 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.Serializer):
     """Сериализатор регистрации пользователя."""
 
-    email = serializers.EmailField(max_length=254, required=True,)
+    email = serializers.EmailField(max_length=MAX_LENGTH_EMAIL, required=True,)
     username = serializers.CharField(
-        max_length=150, required=True,
+        max_length=MAX_LENGTH_USERNAME, required=True,
         validators=[UnicodeUsernameValidator(), validate_username]
     )
 
@@ -92,11 +93,17 @@ class PostTitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,
+                                         allow_empty=True, required=True,
                                          queryset=Genre.objects.all())
 
     class Meta:
         model = Title
         fields = '__all__'
+
+    def to_representation(self, title):
+        "Метод для вывода результата запроса."
+        serializer = GetTitleSerializer(title)
+        return serializer.data
 
 
 class ReviewSerializer(serializers.ModelSerializer):
