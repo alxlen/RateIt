@@ -23,9 +23,9 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.Serializer):
     """Сериализатор регистрации пользователя."""
 
-    email = serializers.EmailField(max_length=MAX_LENGHT_EMAIL, required=True,)
+    email = serializers.EmailField(max_length=MAX_LENGTH_EMAIL, required=True, )
     username = serializers.CharField(
-        max_length=MAX_LENGHT_USERNAME, required=True,
+        max_length=MAX_LENGTH_USERNAME, required=True,
         validators=[UnicodeUsernameValidator(), validate_username]
     )
 
