@@ -4,7 +4,7 @@ from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
-from reviews.constans import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
+from reviews.constants import MAX_LENGTH_EMAIL, MAX_LENGTH_USERNAME
 from reviews.models import Category, Comment, Genre, Review, Title, User
 from reviews.validators import validate_username
 
@@ -23,7 +23,7 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.Serializer):
     """Сериализатор регистрации пользователя."""
 
-    email = serializers.EmailField(max_length=MAX_LENGTH_EMAIL, required=True, )
+    email = serializers.EmailField(max_length=MAX_LENGTH_EMAIL, required=True,)
     username = serializers.CharField(
         max_length=MAX_LENGTH_USERNAME, required=True,
         validators=[UnicodeUsernameValidator(), validate_username]

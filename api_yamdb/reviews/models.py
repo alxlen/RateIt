@@ -6,8 +6,9 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .constans import (MAX_LENGTH_CONFIRMATION_CODE, MAX_LENGTH_EMAIL,
-                       MAX_LENGTH_ROLE, MAX_LENGTH_USERNAME, TITLE_CUT, )
+from .constants import (MAX_LENGTH_CATEGORY, MAX_LENGTH_CONFIRMATION_CODE,
+                        MAX_LENGTH_EMAIL, MAX_LENGTH_GENRE, MAX_LENGTH_ROLE,
+                        MAX_LENGTH_TITLE, MAX_LENGTH_USERNAME, TITLE_CUT,)
 from .validators import validate_username, validate_year
 
 USER = 'user'
@@ -94,7 +95,8 @@ class AddSlug(models.Model):
 class Category(AddSlug):
     """Класс категория."""
 
-    name = models.CharField('Название категории', max_length=256)
+    name = models.CharField('Название категории',
+                            max_length=MAX_LENGTH_CATEGORY)
 
     class Meta:
         verbose_name = 'категория'
@@ -107,7 +109,8 @@ class Category(AddSlug):
 class Genre(AddSlug):
     """Класс жанр."""
 
-    name = models.CharField('Название жанра', max_length=256)
+    name = models.CharField('Название жанра',
+                            max_length=MAX_LENGTH_GENRE)
 
     class Meta:
         verbose_name = 'жанр'
@@ -120,7 +123,8 @@ class Genre(AddSlug):
 class Title(models.Model):
     """Класс произведение."""
 
-    name = models.CharField('Название произведения', max_length=256)
+    name = models.CharField('Название произведения',
+                            max_length=MAX_LENGTH_TITLE)
     year = models.SmallIntegerField('Год выпуска', validators=[validate_year])
     description = models.TextField('Описание', null=True, blank=True)
     genre = models.ManyToManyField(Genre,
@@ -201,6 +205,7 @@ class Review(BaseReview):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
+        related_name='reviews',
         verbose_name='Название произведения',
     )
 
@@ -221,6 +226,7 @@ class Comment(BaseReview):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
+        related_name='comments',
         verbose_name='Отзыв',
     )
 
