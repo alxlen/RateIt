@@ -8,6 +8,10 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
+from .constans import (MAX_LENGHT_USERNAME,
+                       MAX_LENGHT_EMAIL,
+                       MAX_LENGHT_ROLE,
+                       MAX_LENGHT_CONFIRMATION_CODE,)
 from .validators import validate_username
 
 USER = 'user'
@@ -27,19 +31,19 @@ class User(AbstractUser):
 
     username = models.CharField(
         validators=(validate_username,),
-        max_length=150,
+        max_length=MAX_LENGHT_USERNAME,
         unique=True,
         null=False,
     )
     email = models.CharField(
-        max_length=254,
+        max_length=MAX_LENGHT_EMAIL,
         unique=True,
         blank=False,
         null=False,
     )
     role = models.CharField(
         'роль',
-        max_length=20,
+        max_length=MAX_LENGHT_ROLE,
         choices=ROLE_CHOICES,
         default=USER,
         blank=True,
@@ -51,7 +55,7 @@ class User(AbstractUser):
 
     confirmation_code = models.CharField(
         'код подтверждения',
-        max_length=255,
+        max_length=MAX_LENGHT_CONFIRMATION_CODE,
         null=True,
         blank=False,
         default='XXXX'
