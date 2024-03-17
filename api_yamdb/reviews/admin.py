@@ -23,7 +23,7 @@ class CommentAdmin(admin.ModelAdmin):
         'author',
         'pub_date',
     )
-    search_fields = ('review',)
+    search_fields = ('review__name',)
     list_filter = ('review',)
     empty_value_display = '-пусто-'
 

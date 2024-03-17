@@ -6,9 +6,11 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .constants import (MAX_LENGTH_CATEGORY, MAX_LENGTH_CONFIRMATION_CODE,
-                        MAX_LENGTH_EMAIL, MAX_LENGTH_GENRE, MAX_LENGTH_ROLE,
-                        MAX_LENGTH_TITLE, MAX_LENGTH_USERNAME, TITLE_CUT,)
+from .constants import (MAX_LENGTH_CATEGORY_GENRE,
+                        MAX_LENGTH_CONFIRMATION_CODE,
+                        MAX_LENGTH_EMAIL, MAX_LENGTH_ROLE, MAX_LENGTH_TITLE,
+                        MAX_LENGTH_USERNAME, SCORE_VALIDATOR_MAX_VALUE,
+                        SCORE_VALIDATOR_MIN_VALUE, TITLE_CUT,)
 from .validators import validate_username, validate_year
 
 USER = 'user'
@@ -27,13 +29,10 @@ class User(AbstractUser):
         validators=(validate_username,),
         max_length=MAX_LENGTH_USERNAME,
         unique=True,
-        null=False,
     )
     email = models.CharField(
         max_length=MAX_LENGTH_EMAIL,
         unique=True,
-        blank=False,
-        null=False,
     )
     role = models.CharField(
         'роль',
@@ -51,7 +50,6 @@ class User(AbstractUser):
         'код подтверждения',
         max_length=MAX_LENGTH_CONFIRMATION_CODE,
         null=True,
-        blank=False,
         default='XXXX'
     )
 
@@ -65,7 +63,7 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == ADMIN
+        return self.role == ADMIN or self.is_staff
 
     @property
     def is_moderator(self):
@@ -82,42 +80,35 @@ def post_save(sender, instance, created, **kwargs):
         instance.save()
 
 
-class AddSlug(models.Model):
-    """Абстрактная модель. Добавляет поле slug."""
+class AddNameSlugFields(models.Model):
+    """Абстрактная модель. Добавляет поле name и slug."""
 
+    name = models.CharField('Название',
+                            max_length=MAX_LENGTH_CATEGORY_GENRE)
     slug = models.SlugField('Идентификатор', unique=True,)
 
     class Meta:
         ordering = ('name',)
         abstract = True
 
+    def __str__(self):
+        return self.name[:TITLE_CUT]
 
-class Category(AddSlug):
+
+class Category(AddNameSlugFields):
     """Класс категория."""
 
-    name = models.CharField('Название категории',
-                            max_length=MAX_LENGTH_CATEGORY)
-
-    class Meta:
+    class Meta(AddNameSlugFields.Meta):
         verbose_name = 'категория'
         verbose_name_plural = 'Категории'
 
-    def __str__(self):
-        return self.name[:TITLE_CUT]
 
-
-class Genre(AddSlug):
+class Genre(AddNameSlugFields):
     """Класс жанр."""
 
-    name = models.CharField('Название жанра',
-                            max_length=MAX_LENGTH_GENRE)
-
-    class Meta:
+    class Meta(AddNameSlugFields.Meta):
         verbose_name = 'жанр'
         verbose_name_plural = 'Жанры'
-
-    def __str__(self):
-        return self.name[:TITLE_CUT]
 
 
 class Title(models.Model):
@@ -169,7 +160,6 @@ class BaseReview(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='%(class)s_comments',
         verbose_name='Автор',
     )
     pub_date = models.DateTimeField(
@@ -193,11 +183,11 @@ class Review(BaseReview):
         verbose_name='Оценка',
         validators=(
             MinValueValidator(
-                1,
+                SCORE_VALIDATOR_MIN_VALUE,
                 message='Оценка не может быть ниже',
             ),
             MaxValueValidator(
-                10,
+                SCORE_VALIDATOR_MAX_VALUE,
                 message='Оценка не может быть выше',
             ),
         ),
@@ -205,13 +195,13 @@ class Review(BaseReview):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
         verbose_name='Название произведения',
     )
 
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+        default_related_name = 'reviews'
         constraints = (
             models.UniqueConstraint(
                 fields=('author', 'title'),
@@ -226,10 +216,10 @@ class Comment(BaseReview):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Отзыв',
     )
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+        default_related_name = 'comments'
