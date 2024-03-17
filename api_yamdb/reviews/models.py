@@ -8,8 +8,8 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .constans import (MAX_LENGTH_CONFIRMATION_CODE, MAX_LENGTH_EMAIL,
-                       MAX_LENGTH_ROLE, MAX_LENGTH_USERNAME,)
+from .constants import (MAX_LENGTH_CONFIRMATION_CODE, MAX_LENGTH_EMAIL,
+                        MAX_LENGTH_ROLE, MAX_LENGTH_USERNAME,)
 from .validators import validate_username
 
 
