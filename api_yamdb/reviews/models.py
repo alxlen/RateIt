@@ -10,7 +10,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 from .constans import (MAX_LENGTH_CONFIRMATION_CODE, MAX_LENGTH_EMAIL,
-                       MAX_LENGTH_ROLE, MAX_LENGTH_USERNAME, TITLE_CUT, )
+                       MAX_LENGTH_ROLE, MAX_LENGTH_USERNAME, TITLE_CUT, MinValidator, MaxValidator, )
 from .validators import validate_username
 
 USER = 'user'
@@ -188,7 +188,6 @@ class BaseReview(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name='%(class)s_comments',
         verbose_name='Автор',
     )
     pub_date = models.DateTimeField(
@@ -212,11 +211,11 @@ class Review(BaseReview):
         verbose_name='Оценка',
         validators=(
             MinValueValidator(
-                1,
+                MinValidator,
                 message='Оценка не может быть ниже',
             ),
             MaxValueValidator(
-                10,
+                MaxValidator,
                 message='Оценка не может быть выше',
             ),
         ),
@@ -224,13 +223,13 @@ class Review(BaseReview):
     title = models.ForeignKey(
         Title,
         on_delete=models.CASCADE,
-        related_name='reviews',
         verbose_name='Название произведения',
     )
 
     class Meta:
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
+        default_related_name = 'reviews'
         constraints = (
             models.UniqueConstraint(
                 fields=('author', 'title'),
@@ -245,10 +244,10 @@ class Comment(BaseReview):
     review = models.ForeignKey(
         Review,
         on_delete=models.CASCADE,
-        related_name='comments',
         verbose_name='Отзыв',
     )
 
     class Meta:
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
+        default_related_name = 'comments'
