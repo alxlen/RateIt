@@ -6,6 +6,9 @@ from reviews.models import (Category, Comment, Genre, GenreTitle, Review,
                             Title, User)
 
 
+PATH_TO_CSV_FILES = 'static/data/'
+
+
 CSV_FILES_MODELS = [
     ['users.csv', User],
     ['category.csv', Category],
@@ -20,11 +23,11 @@ CSV_FILES_MODELS = [
 PUL = ('title', 'category', 'author')
 
 
-def qq(key):
+def key_add_id(key):
     return f'{key}_id' if key in PUL else key
 
 
-def ww(key, value):
+def value_converted_to_int(key, value):
     return int(value) if key in PUL or 'id' in key else value
 
 
@@ -41,10 +44,11 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE('Загрузка данных'))
 
         for file, model in CSV_FILES_MODELS:
-            with open('static/data/' + file, 'r', encoding='utf-8') as f:
+            with open(PATH_TO_CSV_FILES + file, 'r', encoding='utf-8') as f:
                 reader = csv.DictReader(f)
                 model.objects.bulk_create([model(
-                    **{qq(key): ww(key, value) for key, value in row.items()}
+                    **{key_add_id(key): value_converted_to_int(key, value)
+                       for key, value in row.items()}
                 ) for row in reader])
 
         self.stdout.write(self.style.SUCCESS('Импорт завершен'))

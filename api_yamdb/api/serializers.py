@@ -80,7 +80,7 @@ class GetTitleSerializer(serializers.ModelSerializer):
 
     category = CategorySerializer(read_only=True)
     genre = GenreSerializer(read_only=True, many=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(default=0, read_only=True)
 
     class Meta:
         model = Title
@@ -93,7 +93,8 @@ class PostTitleSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(slug_field='slug',
                                             queryset=Category.objects.all())
     genre = serializers.SlugRelatedField(slug_field='slug', many=True,
-                                         allow_empty=True, required=True,
+                                         allow_empty=False, allow_null=True,
+                                         required=True,
                                          queryset=Genre.objects.all())
 
     class Meta:
