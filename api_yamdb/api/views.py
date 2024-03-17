@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -19,7 +20,6 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              PostTitleSerializer, ReviewSerializer,
                              TokenSerializer, UserRegistrationSerializer,
                              UserSerializer)
-from api_yamdb.settings import EMAIL_SENDER
 from reviews.models import Category, Genre, Review, Title, User
 
 
@@ -48,7 +48,7 @@ class UserRegisterAPIView(views.APIView):
         send_mail(
             subject='Confirmation Code',
             message=f'Your confirmation code: {confirmation_code}',
-            from_email=EMAIL_SENDER,
+            from_email=settings.EMAIL_SENDER,
             recipient_list=[email],
             fail_silently=False,
         )

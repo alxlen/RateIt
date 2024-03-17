@@ -14,32 +14,29 @@ from .constans import (MAX_LENGHT_USERNAME,
                        MAX_LENGHT_CONFIRMATION_CODE,)
 from .validators import validate_username
 
-USER = 'user'
-ADMIN = 'admin'
-MODERATOR = 'moderator'
-ROLE_CHOICES = [
-    (USER, USER),
-    (ADMIN, ADMIN),
-    (MODERATOR, MODERATOR),
-]
 
 TITLE_CUT = 25
 
 
 class User(AbstractUser):
     """Класс пользователя."""
+    USER = 'user'
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    ROLE_CHOICES = [
+        (USER, USER),
+        (ADMIN, ADMIN),
+        (MODERATOR, MODERATOR),
+    ]
 
     username = models.CharField(
         validators=(validate_username,),
         max_length=MAX_LENGHT_USERNAME,
         unique=True,
-        null=False,
     )
     email = models.CharField(
         max_length=MAX_LENGHT_EMAIL,
         unique=True,
-        blank=False,
-        null=False,
     )
     role = models.CharField(
         'роль',
@@ -57,7 +54,6 @@ class User(AbstractUser):
         'код подтверждения',
         max_length=MAX_LENGHT_CONFIRMATION_CODE,
         null=True,
-        blank=False,
         default='XXXX'
     )
 
@@ -71,11 +67,11 @@ class User(AbstractUser):
 
     @property
     def is_admin(self):
-        return self.role == ADMIN
+        return self.role == self.ADMIN or self.is_staff
 
     @property
     def is_moderator(self):
-        return self.role == MODERATOR
+        return self.role == self.MODERATOR
 
 
 @receiver(post_save, sender=User)
