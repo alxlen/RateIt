@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.conf import settings
 from django.core.mail import send_mail
 from django.db.models import Avg
 from django.shortcuts import get_object_or_404
@@ -19,7 +20,6 @@ from api.serializers import (CategorySerializer, CommentSerializer,
                              PostTitleSerializer, ReviewSerializer,
                              TokenSerializer, UserRegistrationSerializer,
                              UserSerializer)
-from api_yamdb.settings import EMAIL_SENDER
 from reviews.models import Category, Genre, Review, Title, User
 
 
@@ -48,7 +48,7 @@ class UserRegisterAPIView(views.APIView):
         send_mail(
             subject='Confirmation Code',
             message=f'Your confirmation code: {confirmation_code}',
-            from_email=EMAIL_SENDER,
+            from_email=settings.EMAIL_SENDER,
             recipient_list=[email],
             fail_silently=False,
         )
@@ -121,9 +121,8 @@ class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.annotate(
         rating=Avg('reviews__score')).order_by('rating')
     permission_classes = (IsAdminOrReadOnly,)
-    filter_backends = (DjangoFilterBackend, filters.OrderingFilter)
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = TitleFilter
-    ordering_fields = ['name', 'year', 'genre', 'category']
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_serializer_class(self):
@@ -160,9 +159,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ('get', 'post', 'patch', 'delete')
 
     def get_review(self):
-        title_id = self.kwargs.get('title_id')
-        review_id = self.kwargs.get('review_id')
-        return get_object_or_404(Review, title_id=title_id, id=review_id)
+        return get_object_or_404(Review, pk=self.kwargs.get('review_id'))
 
     def get_queryset(self):
         return self.get_review().comments.all()
