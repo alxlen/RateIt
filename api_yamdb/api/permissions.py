@@ -1,14 +1,11 @@
 from rest_framework import permissions
 
-from reviews.models import ADMIN, MODERATOR
-
 
 class IsAdmin(permissions.BasePermission):
     """Разрешает доступ только администраторам."""
 
     def has_permission(self, request, view):
-        return request.user.is_authenticated and (request.user.role == ADMIN
-                                                  or request.user.is_staff)
+        return request.user.is_authenticated and (request.user.is_admin)
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
@@ -17,7 +14,7 @@ class IsAdminOrReadOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         return ((request.method in permissions.SAFE_METHODS)
                 or (request.user.is_authenticated
-                and request.user.role == ADMIN))
+                and request.user.is_admin))
 
 
 class IsAuthorModeratorAdminOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
@@ -25,5 +22,5 @@ class IsAuthorModeratorAdminOrReadOnly(permissions.IsAuthenticatedOrReadOnly):
 
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
-                or request.user.role in [MODERATOR, ADMIN]
+                or (request.user.is_admin or request.user.is_moderator)
                 or obj.author == request.user)
